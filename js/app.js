@@ -1,18 +1,19 @@
 // Enemies our player must avoid
 var EnemyRight = function() {
-    this.x = 0;
+    this.x = -200;
     this.y = 0;
     this.sprite = 'images/enemy-bug.png';
     this.spd = 1;
 };
 
 var EnemyLeft = function() {
-    this.x = 404;
+    this.x = 909;
     this.y = 0;
     this.sprite = 'images/enemy-bug-left.png';
     this.spd = 1;
 };
 
+const enemySpdArray = [100, 800, 200, -600, 450, -150, -400, -350, 370];
 
 
 const enemy1 = new EnemyRight();
@@ -21,7 +22,7 @@ enemy1.spd = 100;
 
 const enemy2 = new EnemyRight();
 enemy2.y = 140;
-enemy2.spd = 300;
+enemy2.spd = 800;
 
 const enemy3 = new EnemyRight();
 enemy3.y = 223;
@@ -29,11 +30,11 @@ enemy3.spd = 200;
 
 const enemy4 = new EnemyLeft();
 enemy4.y = 57;
-enemy4.spd = -500;
+enemy4.spd = -600;
 
 const enemy5 = new EnemyRight();
 enemy5.y = 542;
-enemy5.spd = 50;
+enemy5.spd = 450;
 
 const enemy6 = new EnemyLeft();
 enemy6.y = 461;
@@ -49,13 +50,13 @@ enemy8.spd = -350;
 
 const enemy9 = new EnemyRight();
 enemy9.y = 380
-enemy9.spd = 200;
+enemy9.spd = 370;
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
 EnemyRight.prototype.update = function(dt) {
     this.x += (this.spd * dt);
-    if (this.x > 505){
+    if (this.x > 909){
         this.x = -200;
     }
    
@@ -64,7 +65,7 @@ EnemyRight.prototype.update = function(dt) {
 EnemyLeft.prototype.update = function(dt) {
     this.x += (this.spd * dt);
     if (this.x < -200){
-        this.x = 505;
+        this.x = 909;
     }
    
     checkCollision(this.x, this.y);
@@ -72,7 +73,7 @@ EnemyLeft.prototype.update = function(dt) {
 
 function checkCollision(x , y){
     if (x >= (player.x - 73) && 
-        x <= (player.x + 65) &&
+        x <= (player.x + 73) &&
         y >= (player.y - 73) &&
         y <= (player.y + 73)){
             reset();
@@ -81,7 +82,7 @@ function checkCollision(x , y){
 }
 
 function reset(){
-    player.x = 202;
+    player.x = 404;
     player.y = 623;
 }
 
@@ -96,7 +97,7 @@ EnemyLeft.prototype.render = function() {
 
 var Player = function() {
     this.sprite = 'images/char-boy.png';
-    this.x = 202;
+    this.x = 404;
     this.y = 623;
 }
 
@@ -109,8 +110,8 @@ Player.prototype.update = function(dt) {
     }
     if (this.y > 623){
         this.y = 623;
-    }else if (this.x > 404){
-        this.x = 404;
+    }else if (this.x > 808){
+        this.x = 808;
     }else if(this.x < 0){
        this.x = 0;
     }
@@ -131,6 +132,33 @@ Player.prototype.handleInput = function(input){
         this.y += 81;
     }
 };
+const xArray = [0, 101, 202, 303, 404, 505, 606, 707, 808];
+const yArray = [542, 461, 380, 218, 137, 56];
+function random(array){
+    return array[Math.floor((Math.random() * array.length))];
+}
+
+updatePos = function(){
+    buff.x = random(xArray);
+    buff.y = random(yArray);
+};
+
+var TimeSlow = function() {
+    this.sprite = 'images/Star.png';
+    this.x = -100;
+    this.y = -100;
+};
+
+TimeSlow.prototype.update = function(dt) {
+    checkBuffCollision(this.x, this.y);
+};
+
+
+TimeSlow.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+    
+
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
@@ -140,9 +168,6 @@ Player.prototype.handleInput = function(input){
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
-
-const allEnemies = [enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9];
-const player = new Player();
 
 document.addEventListener('click', function(){
     if (event.target.className.substring(0,4) === 'char'){
@@ -163,3 +188,37 @@ document.addEventListener('keyup', function(e) {
 
     player.handleInput(allowedKeys[e.keyCode]);
 });
+
+const timeArray = [10000, 15000, 20000, 25000];
+
+let buffTimer = setInterval(updatePos, random(timeArray));
+
+const allEnemies = [enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9];
+const player = new Player();
+const buff = new TimeSlow;
+
+function checkBuffCollision(x , y){
+    if (x >= (player.x - 73) && 
+        x <= (player.x + 73) &&
+        y >= (player.y - 73) &&
+        y <= (player.y + 73)){
+            allEnemies.forEach(function(element){
+                element.spd /= 4;
+            });
+    }
+    if (enemy1.spd === 25){
+        buff.x = -100;
+        buff.y = -100;
+        setTimeout(resetSpd, 5000);
+        clearInterval(buffTimer);
+        buffTimer = setInterval(updatePos, random(timeArray));
+    }
+}
+
+function resetSpd() {
+    let count = 0;
+    allEnemies.forEach(function(element){
+        element.spd = enemySpdArray[count];
+        count++;
+    }
+)}
