@@ -4,7 +4,7 @@ This a classic arcade game clone made for Udacity's Front-End Web Developer nano
 
 ## Getting Started
 
-Download all files in teh project and open the `index.html` in your browser of choice.
+Download all files in the project and open the `index.html` in your browser of choice.
 
 ## Prerequisites
 
