@@ -1,91 +1,53 @@
-// constructor function for enemies that travel left to right
-var EnemyRight = function(startRow, spd) { 
-    this.x = -200;
+//constructor function for enemies
+var Enemy = function(startRow, spd, isLeft) {
+    this.isLeft = isLeft
+    if (this.isLeft === 1){
+        this.x = 909;
+        this.sprite = 'images/enemy-bug-left.png';
+        this.spd = spd * -1;
+    }else{
+        this.x = -200;
+        this.sprite = 'images/enemy-bug.png'
+        this.spd = spd;
+    }
     this.y = startRow;
-    this.sprite = 'images/enemy-bug.png';
-    this.spd = spd;
-};
-
-// constructor function for enemies that travel right to left
-var EnemyLeft = function(startRow, spd) { 
-    this.x = 909;
-    this.y = startRow;
-    this.sprite = 'images/enemy-bug-left.png';
-    this.spd = spd;
-};
-
-const enemySpdArrayRight = [100, 800, 200, 450, 370]; // array that contains spd of right moving enemies
-
-const enemySpdArrayLeft = [-600, -150, -400, -350, -200]; // array that contains spd of left moving enemies
-
-const enemyPos = [57, 140, 223, 380, 461, 542] // positions that enemies can spawn in correspondig to the stone rows
-
-const enemySpdArray = [100, 800, 200, 450, 370, -600, -150, -400, -350] // enemy spd in one array thats used in the resetspd function
-
-
-// the enemies that are on the game board, 5 right moving enemies, and 5 left moving enemies
-const enemy1 = new EnemyRight(57, enemySpdArrayRight[0]);
-
-const enemy2 = new EnemyRight(140, enemySpdArrayRight[1]);
-
-const enemy3 = new EnemyRight(223, enemySpdArrayRight[2]);
-
-const enemy4 = new EnemyRight(57, enemySpdArrayRight[3]);
-
-const enemy5 = new EnemyRight(542, enemySpdArrayRight[4]);
-
-const enemy6 = new EnemyLeft(461, enemySpdArrayLeft[0]);
-
-const enemy7 = new EnemyLeft(380, enemySpdArrayLeft[1]);
-
-const enemy8 = new EnemyLeft(140, enemySpdArrayLeft[2]);
-
-const enemy9 = new EnemyLeft(380, enemySpdArrayLeft[3]);
-
-const enemy10 = new EnemyLeft(57, enemySpdArrayLeft[4]);
+}
 
 // function that selects a random index on an array
 function random(array){
     return array[Math.floor((Math.random() * array.length))];
 }
 
+const enemyPos = [57, 140, 223, 380, 461, 542] // positions that enemies can spawn in corresponding to the stone rows
+
+const enemySpdArray = [100, 800, 200, 450, 370, 600, 150, 400, 350, 700] // enemy spd
+
+//for loops that generates enemy objects
+let allEnemies = [];
+for (let x = 0; x < 10; x++){
+    allEnemies[x] = new Enemy(random(enemyPos), enemySpdArray[x], random([0,1]));
+}
+
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
-EnemyRight.prototype.update = function(dt) {
+Enemy.prototype.update = function(dt) {
     this.x += (this.spd * dt); // how fast enemy moves
-    if (this.x > 909){
-        this.x = -200; // resets position of enemy once it moves off-screen
-        this.spd = random(enemySpdArrayRight); // randomizes enemy speed after it moves off-screen
+    if (this.isLeft && this.x < -200){
+        this.x = 909; // resets position of enemy once it moves off-screen
+        this.spd = -random(enemySpdArray); // randomizes enemy speed after it moves off-screen
         this.y = random(enemyPos); // randmizes enemy position after it moves off-screen
+    }else if (!this.isLeft && this.x > 909){
+        this.x = -200;
+        this.spd = random(enemySpdArray);
+        this.y = random(enemyPos);
     }
    
     this.checkCollision(this.x, this.y); // calls collision method
 };
 
-EnemyLeft.prototype.update = function(dt) {
-    this.x += (this.spd * dt); // how fast enemy moves
-    if (this.x < -200){
-        this.x = 909; // resets position of enemy once it moves off-screen
-        this.spd = random(enemySpdArrayLeft); // randomizes enemy speed after it moves off-screen
-        this.y = random(enemyPos); // randmizes enemy position after it moves off-screen
-    }
-   
-    this.checkCollision(this.x, this.y); //calls collision method
-};
-
 // method that checks collision with player object
-EnemyRight.prototype.checkCollision = function(x , y){
+Enemy.prototype.checkCollision = function(x , y){
     if (x >= (player.x - 73) && // if statement that triggers reset function if enemy comes into contact with a 73x73 square around player object
-    x <= (player.x + 73) &&
-    y >= (player.y - 73) &&
-    y <= (player.y + 73)){
-        reset();
-        score.innerHTML = 0; // resets score upon collision
-    }
-}
-
-EnemyLeft.prototype.checkCollision = function(x , y){
-    if (x >= (player.x - 73) && //if statement that triggers reset function if enemy comes into contact with a 73x73 square around player object
     x <= (player.x + 73) &&
     y >= (player.y - 73) &&
     y <= (player.y + 73)){
@@ -101,11 +63,7 @@ function reset(){
 }
 
 // Draw the enemy on the screen, required method for game
-EnemyRight.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
-
-EnemyLeft.prototype.render = function() {
+Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
@@ -182,8 +140,13 @@ TimeSlow.prototype.render = function() {
 function resetSpd() {
     let count = 0;
     allEnemies.forEach(function(element){
-        element.spd = enemySpdArray[count];
-        count++;
+        if (element.isLeft === 0){
+            element.spd = enemySpdArray[count];
+            count++;
+        }else{
+            element.spd = (enemySpdArray[count] * -1);
+            count++;
+        }
     }
 )}
 
@@ -234,7 +197,6 @@ const timeArray = [10000, 15000, 20000, 25000];
 // setInterval that causes the stopwatch to spawn at random times
 let buffTimer = setInterval(updatePos, random(timeArray));
 
-const allEnemies = [enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9, enemy10];
 const player = new Player();
 const buff = new TimeSlow;
 
